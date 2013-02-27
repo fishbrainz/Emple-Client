@@ -101,7 +101,6 @@ package gui
 		public function showLoginFailed(event:IOErrorEvent):void
 		{
 			error_label.text = event.text;
-			trace(event);
 		}
 	}
 }
