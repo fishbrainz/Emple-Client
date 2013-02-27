@@ -19,6 +19,7 @@ package login
 		private static var streamParser:StreamParser;
 		private static var con:Connection;
 		private static var bytesOffset:int = 0;
+		private static var errorHandler:Function;
 		private static var email:String = "deniraxxx@mail.ru";
 		private static var passwd:String = "deniraxxx@mail.ru";
 		
@@ -32,12 +33,24 @@ package login
 			LoginController.passwd = passwd;
 			con = ConnectionManager.getConnection(Consts.LOGIN_SERVER_HOST, Consts.LOGIN_SERVER_PORT, "LoginConnection");
 			streamParser = new StreamParser(con, handleLoginStream); 
-			con.connect(errorHandler);
+			LoginController.errorHandler = errorHandler;
+			con.connect(sendLoginInformation, LoginController.errorHandler);
+		}
+		
+		private static function sendLoginInformation(event:Event):void
+		{
+			var packet:ClientPacket = new ClientPacket();
+			packet.writeCommand(OPcodes.LOGIN);
+			packet.writeUTFdata(LoginController.email);
+			packet.writeUTFdata(LoginController.passwd);
+			packet.close();
+			con.sendPacket(packet);
 		}
 		
 		private static function handleLoginStream(data:ByteArray, packetLength:int):void
 		{
 			var com:int = data[bytesOffset++];
+			trace(com);
 			while (bytesOffset < packetLength) {
 				switch (com) {
 					case OPcodes.HERO_LIST:
@@ -65,21 +78,16 @@ package login
 				server["name"] = result.result;
 				result = ByteParser.parseString(data, result.offset);
 				server["ip"] = result.result;
-				result = ByteParser.parseString(data, result.offset);
+				result = ByteParser.parseShort(data, result.offset);
 				server["port"] = result.result;
 				serverList.push(server);
 			}
-			con.close();
+			bytesOffset = result.offset;
+			ConnectionManager.deleteConnection("LoginConnection");
+			trace(serverList[0].ip, serverList[0].port);
 			con = ConnectionManager.getConnection(serverList[0].ip, serverList[0].port, "LoginConnection");
 			streamParser = new StreamParser(con, handleLoginStream); 
-			
-			var packet:ClientPacket = new ClientPacket();
-			packet.writeCommand(OPcodes.LOGIN);
-			packet.writeUTFdata(LoginController.email);
-			packet.writeUTFdata(LoginController.passwd);
-			packet.close();
-			
-			con.sendPacket(packet);
+			con.connect(sendLoginInformation, LoginController.errorHandler);
 		}
 	}
 }

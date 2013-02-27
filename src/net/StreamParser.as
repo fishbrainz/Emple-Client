@@ -48,12 +48,12 @@ package net
 		}
 		
 		
-		private function handleHeader(e:ProgressEvent, f:int):void
+		private function handleHeader(e:ProgressEvent):void
 		{
 			accept((e.target as Socket), Consts.HEADER_SIZE, parseHeader);
 		}
 		
-		private function parseHeader(data:ByteArray):void
+		private function parseHeader(data:ByteArray, f:int):void
 		{
 			if (data[0] != Consts.PROTOCOL_VER) {
 				

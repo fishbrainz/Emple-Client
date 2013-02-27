@@ -12,6 +12,7 @@ package net
 		private var socket:Socket;
 		private var data_callback:Function;
 		private var error_callback:Function;
+		private var success_callback:Function;
 		private var host:String;
 		private var port:int;
 		
@@ -26,14 +27,17 @@ package net
 		
 		public function close():void
 		{
-			socket.close();
+			if (socket.connected) {
+				socket.close();
+			}
 		}
 		
 		
-		public function connect(error_handler:Function):void
+		public function connect(success_callback:Function, error_handler:Function):void
 		{
 			socket.connect(host, port);
 			socket.addEventListener(IOErrorEvent.IO_ERROR, error_handler);
+			socket.addEventListener(Event.CONNECT, success_callback);
 		}
 		
 		
@@ -62,7 +66,12 @@ package net
 		
 		public function sendPacket(p:ClientPacket):void
 		{
-			socket.writeBytes(p.data());
+			if (socket.connected) {
+				socket.writeBytes(p.data());
+				socket.flush();
+			} else {
+				trace("Socket is closed");
+			}
 		}
 		
 		
