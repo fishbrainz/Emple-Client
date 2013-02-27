@@ -11,6 +11,9 @@ package gui
 	import feathers.controls.TextInput;
 	import feathers.themes.AeonDesktopTheme;
 	
+	import flash.events.IOErrorEvent;
+	import flash.events.ProgressEvent;
+	
 	import gui.CommonGUI;
 	
 	import login.LoginController;
@@ -30,6 +33,7 @@ package gui
 		private var password:TextInput;
 		private var p_label:Label;
 		private var l_label:Label;
+		private var error_label:Label;
 		private var button:Button;
 		
 		private function customCalloutFactory():Callout
@@ -45,7 +49,7 @@ package gui
 			theme = new AeonDesktopTheme(this.stage);
 
 			login_input = new TextInput();
-			login_input.text = "";
+			login_input.text = "deniraxxx@mail.ru";
 			login_input.width = 200;
 			login_input.height = 25;
 			login_input.x = (stage.stageWidth - login_input.width) / 2;
@@ -54,7 +58,7 @@ package gui
 			
 			l_label = new Label();
 			l_label.text = "E-mail";
-			l_label.x = login_input.x - 40;
+			l_label.x = login_input.x - 63;
 			l_label.y = login_input.y;
 			components.push(l_label);
 			
@@ -62,9 +66,9 @@ package gui
 			password.textEditorProperties
 			password.width = 200;
 			password.height = 25;
-			password.x = (stage.stageWidth - password.width) / 2;
-			password.y = (stage.stageHeight - password.height) / 2 - 50;
-			password.text = "";
+			password.x = login_input.x;
+			password.y = login_input.y + 25;
+			password.text = "password";
 			components.push(password);
 			
 			p_label = new Label();
@@ -80,12 +84,24 @@ package gui
 			button.y = (stage.stageHeight - button.height) / 2 - 25;
 			button.addEventListener(Event.TRIGGERED, handleClick);
 			components.push(button);
+			
+			error_label = new Label();
+			error_label.text = "";
+			error_label.x = login_input.x;
+			error_label.y = button.y + 25;
+			components.push(error_label);
 		}
 		
 		
 		private function handleClick(event:Event):void
 		{
-			LoginController.loginUser(login_input.text, password.text);
+			LoginController.loginUser(login_input.text, password.text, showLoginFailed);
+		}
+		
+		public function showLoginFailed(event:IOErrorEvent):void
+		{
+			error_label.text = event.text;
+			trace(event);
 		}
 	}
 }

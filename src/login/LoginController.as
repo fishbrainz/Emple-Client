@@ -1,27 +1,35 @@
 package login
 {
+	import flash.events.*;
+	import flash.events.TimerEvent;
 	import flash.utils.ByteArray;
 	
+	import header.Consts;
+	import header.OPcodes;
+	
+	import helpers.ByteParser;
+	
+	import net.ClientPacket;
 	import net.Connection;
 	import net.ConnectionManager;
 	import net.StreamParser;
-	import header.OPcodes;
-	import header.Consts;
-	import helpers.ByteParser;
-	import net.ClientPacket;
 	
 	public class LoginController
 	{
 		private static var streamParser:StreamParser;
 		private static var con:Connection;
 		private static var bytesOffset:int = 0;
+		private static var email:String = "deniraxxx@mail.ru";
+		private static var passwd:String = "deniraxxx@mail.ru";
 		
 		public function LoginController()
 		{
 		}
 		
-		public static function loginUser(email:String, passwd:String):void
+		public static function loginUser(email:String, passwd:String, errorHandler:Function):void
 		{
+			LoginController.email = email;
+			LoginController.passwd = passwd;
 			con = ConnectionManager.getConnection(Consts.LOGIN_SERVER_HOST, Consts.LOGIN_SERVER_PORT, "LoginConnection");
 			streamParser = new StreamParser(con, handleLoginStream); 
 			con.connect(errorHandler);
@@ -67,17 +75,11 @@ package login
 			
 			var packet:ClientPacket = new ClientPacket();
 			packet.writeCommand(OPcodes.LOGIN);
-			packet.writeUTFdata("deniraxxx@mail.ru");
-			packet.writeUTFdata("password");
+			packet.writeUTFdata(LoginController.email);
+			packet.writeUTFdata(LoginController.passwd);
 			packet.close();
 			
 			con.sendPacket(packet);
-		}
-		
-		
-		private static function errorHandler(e:ProgressEvent):void
-		{
-			
 		}
 	}
 }

@@ -19,6 +19,16 @@ package gui
 		}
 		
 		
+		public static function getGuiLayer(l:String):CommonGUI
+		{
+			if (l == "LoginGuiLayer") {
+				return layers[0];
+			}
+			
+			return layers[0];
+		}
+		
+		
 		public static function switchGuiLayer(l:String):void
 		{
 			if (l == "LoginGuiLayer") {
