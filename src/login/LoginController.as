@@ -49,8 +49,8 @@ package login
 		
 		private static function handleLoginStream(data:ByteArray, packetLength:int):void
 		{
-			var com:int = data[bytesOffset++];
-			trace(com);
+			var com:int = data.readByte();
+			trace("command", com);
 			while (bytesOffset < packetLength) {
 				switch (com) {
 					case OPcodes.HERO_LIST:
@@ -71,20 +71,17 @@ package login
 		{
 			var serverList:Vector.<Object> = new Vector.<Object>();
 			var result:Object = ByteParser.parseShort(data, bytesOffset);
-			var total:int = result.result;
+			var total:int = data.readShort();
 			var server:Object = {};
 			for (var i:int = 0; i < total; ++i) {
-				result = ByteParser.parseString(data, result.offset);
-				server["name"] = result.result;
-				result = ByteParser.parseString(data, result.offset);
-				server["ip"] = result.result;
-				result = ByteParser.parseShort(data, result.offset);
-				server["port"] = result.result;
+				server["name"] = data.readUTF();
+				server["ip"] = data.readUTF();
+				server["port"] = data.readShort();
 				serverList.push(server);
 			}
 			bytesOffset = result.offset;
 			ConnectionManager.deleteConnection("LoginConnection");
-			trace(serverList[0].ip, serverList[0].port);
+			trace(serverList[0].name, serverList[0].ip, serverList[0].port);
 			con = ConnectionManager.getConnection(serverList[0].ip, serverList[0].port, "LoginConnection");
 			streamParser = new StreamParser(con, handleLoginStream); 
 			con.connect(sendLoginInformation, LoginController.errorHandler);

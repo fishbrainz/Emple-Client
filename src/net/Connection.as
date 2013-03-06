@@ -60,7 +60,7 @@ package net
 		
 		private function handleConnect(event:Event):void
 		{
-			
+			trace("socket connected");
 		}
 		
 		

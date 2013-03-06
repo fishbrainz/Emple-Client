@@ -3,6 +3,7 @@ package net
 	import flash.events.*;
 	import flash.net.Socket;
 	import flash.utils.ByteArray;
+	import flash.utils.Endian;
 	import header.Consts;
 	
 	public class StreamParser
@@ -16,6 +17,7 @@ package net
 		
 		public function StreamParser(connection:Connection, f:Function)
 		{
+			_data.endian = Endian.LITTLE_ENDIAN;
 			this.connection = connection;
 			this.data_callback = f;
 			waitForHeader();

@@ -2,6 +2,7 @@ package net
 {
 	import flash.net.Socket;
 	import flash.utils.ByteArray;
+	import flash.utils.Endian;
 	import header.Consts;
 	
 	public class ClientPacket {
@@ -12,7 +13,8 @@ package net
 		
 		public function ClientPacket ()
 		{
-			
+			_data.endian = Endian.LITTLE_ENDIAN;
+			dataBuffer.endian = Endian.LITTLE_ENDIAN;
 		}
 		
 		public function empty():Boolean
@@ -28,7 +30,8 @@ package net
 		public function writeCommand(com:int):void
 		{
 			_data.writeByte(Consts.PROTOCOL_VER);
-			dataBuffer = new ByteArray();
+			_data.position += Consts.LENGTH_HEADER;
+			_data.writeByte(com);
 			this.com = com;
 		}
 		
@@ -43,58 +46,33 @@ package net
 		public function writeTime(t:Number):void
 		{
 			var t1:int = t/1000;
-			for (var i:int = 4; i > 0; i--) { 
-				dataBuffer.writeByte(((t1 >>> 8*(i-1)) & 255));
-			}
+			_data.writeInt(t1);
 			var t2:int = t - t1*1000;
-			for (i = 2; i > 0; i--) { 
-				dataBuffer.writeByte(((t2 >>> 8*(i-1)) & 255));
-			}
+			_data.writeShort(t2);
 		}
 		public function writeUTFdata(s:String):void
 		{	
 			isEmpty = false;
-			for (var i:int = 2; i > 0; i--) {		
-				dataBuffer.writeByte(((s.length >> 8*(i-1)) & 255)) ;
-			}
-			dataBuffer.writeUTFBytes(s);
+			_data.writeShort(s.length);
+			_data.writeUTFBytes(s);
 		}
 		
 		public function writeByte(b:int):void
 		{
-			dataBuffer.writeByte(b);
+			_data.writeByte(b);
 		}
 		
 		public function writeShort(b:int):void
 		{
-			for (var i:int = 2; i > 0; i--) {		
-				dataBuffer.writeByte(((b >> 8*(i-1)) & 255)) ;
-			}
-		}
-		
-		public function writeData(data:int):void
-		{
-			isEmpty = false;
-			var v:Vector.<int> = new Vector.<int>();
-			while (data > 0) {
-				v.push(data & 255);
-				data = data >> 8;
-			}
-			for (var i:int = v.length - 1; i > -1; i--) {
-				dataBuffer.writeByte(v[i]);
-			}
+			_data.writeShort(b);
 		}
 		
 		public function close():void
 		{
-			var l:int = dataBuffer.length + 1;
-			var bytes:int = Consts.LENGTH_HEADER;
-			while (bytes > 0) {
-				bytes--;
-				_data.writeByte((l >> (8*bytes)) & 255);
-			}
-			_data.writeByte(this.com);
-			_data.writeBytes(dataBuffer);
+			var l:int = _data.length-1-Consts.LENGTH_HEADER;
+			_data.position = 1;
+			_data.writeShort(l);
+			_data.position = 0;
 		}
 	}
 }
