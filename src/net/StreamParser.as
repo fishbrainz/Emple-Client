@@ -57,10 +57,11 @@ package net
 		
 		private function parseHeader(data:ByteArray, f:int):void
 		{
-			if (data[0] != Consts.PROTOCOL_VER) {
+			if (data.readByte() != Consts.PROTOCOL_VER) {
 				
 			}
-			packetLength = data[1] << 8 | data[2];
+			packetLength = data.readShort();
+			data.position = 0;
 			accept(connection.getSocket(), packetLength, data_callback, waitForHeader);
 			connection.setDataHandler(handlePacket);
 		}
