@@ -39,6 +39,7 @@ package login
 		
 		private static function sendLoginInformation(event:Event):void
 		{
+			trace("sendLoginInformation");
 			var packet:ClientPacket = new ClientPacket();
 			packet.writeCommand(OPcodes.LOGIN);
 			packet.writeUTFdata(LoginController.email);
@@ -49,26 +50,49 @@ package login
 		
 		private static function handleLoginStream(data:ByteArray, packetLength:int):void
 		{
-			var com:int = data.readByte();
-			trace("command", com);
-			while (bytesOffset < packetLength) {
+			data.position = 0;
+			var com:int;
+			while (data.position < packetLength-1) {
+				com = data.readByte();
+				trace("command", com);
 				switch (com) {
 					case OPcodes.HERO_LIST:
-						//handleHeroList(data);
+						handleHeroList(data);
 						break;
 					case OPcodes.SERVER_LIST:
 						handleServerList(data);
 						break;
 					case OPcodes.RESPONSE_CODE:
-						//handleResponseCode(data);
+						handleResponseCode(data);
 						break;
 				}
 			}
-			bytesOffset = 0;
+		}
+		
+		private static function handleHeroList(data:ByteArray):void
+		{
+			var total = data.readShort();
+			var heroList:Vector.<Object> = new Vector.<Object>();
+			var i:int = 0;
+			var hero:Object = {};
+			while (i < total) {
+				++i;
+				hero.hero_name = data.readUTF();
+				hero.hero_class = data.readByte();
+				hero.level = data.readByte();
+				trace(hero);
+				heroList.push(hero);
+			}
+		}
+		
+		private static function handleResponseCode(data:ByteArray):void
+		{
+			trace(data.readByte());
 		}
 		
 		private static function handleServerList(data:ByteArray):void
 		{
+			trace("handleServerList");
 			var serverList:Vector.<Object> = new Vector.<Object>();
 			var result:Object = ByteParser.parseShort(data, bytesOffset);
 			var total:int = data.readShort();
@@ -81,7 +105,6 @@ package login
 			}
 			bytesOffset = result.offset;
 			ConnectionManager.deleteConnection("LoginConnection");
-			trace(serverList[0].name, serverList[0].ip, serverList[0].port);
 			con = ConnectionManager.getConnection(serverList[0].ip, serverList[0].port, "LoginConnection");
 			streamParser = new StreamParser(con, handleLoginStream); 
 			con.connect(sendLoginInformation, LoginController.errorHandler);
